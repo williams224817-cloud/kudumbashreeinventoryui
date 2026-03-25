@@ -118,12 +118,12 @@ export default function OrderDetails() {
             <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">#{order.orderid}</p>
           </div>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Customer</p>
-            <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">{order.customer || 'N/A'}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Supermarket ID</p>
+            <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">{order.supermarketid || 'N/A'}</p>
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Status</p>
-            <div className="mt-1">{getStatusBadge(order.orderstatus)}</div>
+            <div className="mt-1">{getStatusBadge(order.status)}</div>
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Total Amount</p>
@@ -141,7 +141,7 @@ export default function OrderDetails() {
           { key: 'delivered', label: 'Delivered', icon: CheckCircle, color: 'emerald' },
         ]
         const statusMap = { pending: 0, processing: 1, shipped: 2, in_transit: 2, delivered: 3, completed: 3 }
-        const currentStep = statusMap[(order.orderstatus || '').toLowerCase()] ?? 0
+        const currentStep = statusMap[(order.status || '').toLowerCase()] ?? 0
         const colorMap = {
           amber: { active: 'bg-amber-500 dark:bg-amber-400', ring: 'ring-amber-200 dark:ring-amber-800', line: 'bg-amber-400', text: 'text-amber-700 dark:text-amber-400' },
           blue: { active: 'bg-blue-500 dark:bg-blue-400', ring: 'ring-blue-200 dark:ring-blue-800', line: 'bg-blue-400', text: 'text-blue-700 dark:text-blue-400' },
@@ -233,27 +233,29 @@ export default function OrderDetails() {
           {transportRecords.length === 0 ? (
             <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">No transport records</p>
           ) : (
-            <div className="space-y-3">
+          <div className="space-y-3">
               {transportRecords.map((t, idx) => (
                 <div key={t.transportid || idx} className="border border-gray-100 dark:border-gray-800 rounded-lg p-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Vehicle</p>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">{t.vehiclenumber || t.vehicle_number || 'N/A'}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">{t.vehiclenumber || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Driver</p>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">{t.drivername || t.driver_name || 'N/A'}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">{t.drivername || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Origin</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">{t.origin || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Destination</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">{t.destination || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Status</p>
-                      <div className="mt-1">{getStatusBadge(t.transportstatus || t.status)}</div>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Departure</p>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">
-                        {t.departuredate || t.departure_date ? new Date(t.departuredate || t.departure_date).toLocaleDateString() : 'N/A'}
-                      </p>
+                      <div className="mt-1">{getStatusBadge(t.status)}</div>
                     </div>
                   </div>
                 </div>

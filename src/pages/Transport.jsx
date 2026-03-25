@@ -27,9 +27,11 @@ export default function Transport() {
     { key: 'transportid', label: 'Transport ID', sortable: true },
     { key: 'vehiclenumber', label: 'Vehicle', sortable: true },
     { key: 'drivername', label: 'Driver', sortable: true },
+    { key: 'origin', label: 'Origin', sortable: true },
+    { key: 'destination', label: 'Destination', sortable: true },
     { key: 'orderid', label: 'Order ID', sortable: true },
     {
-      key: 'transportstatus',
+      key: 'status',
       label: 'Status',
       render: (status) => {
         const s = (status || '').toLowerCase()
@@ -46,7 +48,7 @@ export default function Transport() {
       }
     },
     {
-      key: 'transportstatus',
+      key: 'status',
       label: 'Action',
       render: (status, row) => {
         const s = (status || '').toLowerCase()
@@ -61,18 +63,19 @@ export default function Transport() {
           </button>
         )
       }
-    },
-    { key: 'departuredate', label: 'Date', render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A' }
+    }
   ]
 
   const formFields = [
     { name: 'vehiclenumber', label: 'Vehicle Number/Plate', required: true, placeholder: 'KL-01-AB-1234' },
     { name: 'drivername', label: 'Driver Name', required: true, placeholder: 'Enter driver name' },
+    { name: 'origin', label: 'Origin', required: true, placeholder: 'Enter origin location' },
+    { name: 'destination', label: 'Destination', required: true, placeholder: 'Enter destination location' },
     { name: 'orderid', label: 'Order ID', type: 'number', placeholder: 'Associated order ID' },
   ]
 
   const filteredTransport = transport.filter(item =>
-    !filterStatus || (item.transportstatus || '').toLowerCase() === filterStatus
+    !filterStatus || (item.status || '').toLowerCase() === filterStatus
   )
 
   const handleAddTransport = async (formData) => {
@@ -84,9 +87,9 @@ export default function Transport() {
     }
   }
 
-  const pendingCount = transport.filter(t => (t.transportstatus || '').toLowerCase() === 'pending').length
-  const inTransitCount = transport.filter(t => ['in transit', 'in_transit'].includes((t.transportstatus || '').toLowerCase())).length
-  const deliveredCount = transport.filter(t => (t.transportstatus || '').toLowerCase() === 'delivered').length
+  const pendingCount = transport.filter(t => (t.status || '').toLowerCase() === 'pending').length
+  const inTransitCount = transport.filter(t => ['in transit', 'in_transit'].includes((t.status || '').toLowerCase())).length
+  const deliveredCount = transport.filter(t => (t.status || '').toLowerCase() === 'delivered').length
 
   if (error) {
     return (

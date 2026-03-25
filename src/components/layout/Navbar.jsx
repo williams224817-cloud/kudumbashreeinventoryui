@@ -75,7 +75,7 @@ export default function Navbar() {
       try {
         const [products, orders, inventory] = await Promise.all([
           supabase.from('product').select('productid, productname, category').ilike('productname', `%${searchTerm}%`).limit(5),
-          supabase.from('orders').select('orderid, customer, orderstatus').or(`customer.ilike.%${searchTerm}%,orderid.eq.${parseInt(searchTerm) || 0}`).limit(5),
+          supabase.from('orders').select('orderid, supermarketid, status').or(`supermarketid.ilike.%${searchTerm}%,orderid.eq.${parseInt(searchTerm) || 0}`).limit(5),
           supabase.from('inventory').select('inventoryid, availablequantity, product(productname)').limit(50),
         ])
         const filteredInv = (inventory.data || []).filter(i =>
@@ -175,7 +175,7 @@ export default function Navbar() {
                         <ShoppingCart size={14} className="text-emerald-500 shrink-0" />
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">Order #{o.orderid}</p>
-                          <p className="text-xs text-gray-400">{o.customer} — {o.orderstatus}</p>
+                          <p className="text-xs text-gray-400">{o.supermarketid} — {o.status}</p>
                         </div>
                       </button>
                     ))}

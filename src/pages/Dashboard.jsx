@@ -205,12 +205,12 @@ export default function Dashboard() {
                     <td className="px-5 py-3.5 text-sm text-blue-600 font-medium">#{order.orderid}</td>
                     <td className="px-5 py-3.5 text-sm">
                       <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                        (order.orderstatus || '').toLowerCase() === 'completed' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
-                        (order.orderstatus || '').toLowerCase() === 'pending' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' :
-                        (order.orderstatus || '').toLowerCase() === 'processing' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                        (order.status || '').toLowerCase() === 'completed' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
+                        (order.status || '').toLowerCase() === 'pending' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' :
+                        (order.status || '').toLowerCase() === 'processing' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
                         'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                       }`}>
-                        {order.orderstatus || 'Pending'}
+                        {order.status || 'Pending'}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-sm text-gray-500 dark:text-gray-400">

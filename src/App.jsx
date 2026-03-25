@@ -10,6 +10,7 @@ import Inventory from "./pages/Inventory"
 import Transport from "./pages/Transport"
 import Payments from "./pages/Payments"
 import MicroUnits from "./pages/MicroUnits"
+import MicroUnitDetails from "./pages/MicroUnitDetails"
 import ActivityLog from "./pages/ActivityLog"
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
         <Route path="/transport" element={<DashboardLayout><Transport /></DashboardLayout>} />
         <Route path="/payments" element={<DashboardLayout><Payments /></DashboardLayout>} />
         <Route path="/micro-units" element={<DashboardLayout><MicroUnits /></DashboardLayout>} />
+        <Route path="/micro-units/:unitId" element={<DashboardLayout><MicroUnitDetails /></DashboardLayout>} />
         <Route path="/activity-log" element={<DashboardLayout><ActivityLog /></DashboardLayout>} />
       </Routes>
     </BrowserRouter>

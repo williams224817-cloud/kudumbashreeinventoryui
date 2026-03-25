@@ -10,16 +10,15 @@ export default function Orders() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [filterStatus, setFilterStatus] = useState('')
 
-  const [customer, setCustomer] = useState('')
-  const [notes, setNotes] = useState('')
+  const [supermarketid, setSupermarketid] = useState('')
   const [orderItems, setOrderItems] = useState([{ productid: '', quantity: 1 }])
 
   const columns = [
     { key: 'orderid', label: 'Order ID', sortable: true },
-    { key: 'customer', label: 'Customer', sortable: true },
+    { key: 'supermarketid', label: 'Supermarket ID', sortable: true },
     { key: 'totalamount', label: 'Total', sortable: true, render: (val) => <span className="font-semibold text-gray-900 dark:text-white">₹{val || 0}</span> },
     { 
-      key: 'orderstatus', 
+      key: 'status', 
       label: 'Status',
       render: (status) => (
         <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
@@ -36,7 +35,7 @@ export default function Orders() {
   ]
 
   const filteredOrders = orders.filter(order =>
-    !filterStatus || order.orderstatus === filterStatus
+    !filterStatus || order.status === filterStatus
   )
 
   const getProduct = (id) => products.find(p => p.productid === Number(id))
@@ -51,25 +50,32 @@ export default function Orders() {
     setOrderItems(orderItems.map((item, i) => i === index ? { ...item, [field]: value } : item))
   }
 
-  const resetForm = () => { setCustomer(''); setNotes(''); setOrderItems([{ productid: '', quantity: 1 }]) }
+  const resetForm = () => { setSupermarketid(''); setOrderItems([{ productid: '', quantity: 1 }]) }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!customer.trim()) return alert('Customer name is required')
+    if (!supermarketid.trim()) return alert('Supermarket ID is required')
     if (!orderItems.some(i => i.productid)) return alert('Add at least one product')
     try {
-      await addOrder({ customer: customer.trim(), totalamount: orderTotal, orderstatus: 'Pending', notes, orderdate: new Date().toISOString() })
+      console.log('Submitting order:', { supermarketid: supermarketid.trim(), totalamount: orderTotal })
+      await addOrder({ 
+        supermarketid: supermarketid.trim(), 
+        totalamount: orderTotal, 
+        orderdate: new Date().toISOString() 
+      })
       resetForm()
       setIsModalOpen(false)
+      alert('Order created successfully!')
     } catch (error) {
+      console.error('Order submission error:', error)
       alert('Error creating order: ' + error.message)
     }
   }
 
   const stats = {
     total: orders.length,
-    pending: orders.filter(o => (o.orderstatus || '').toLowerCase() === 'pending').length,
-    completed: orders.filter(o => (o.orderstatus || '').toLowerCase() === 'completed').length,
+    pending: orders.filter(o => (o.status || '').toLowerCase() === 'pending').length,
+    completed: orders.filter(o => (o.status || '').toLowerCase() === 'completed').length,
   }
 
   const inputClass = "w-full px-3 py-2.5 bg-gray-50/50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm dark:text-gray-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none transition-all"
@@ -77,7 +83,7 @@ export default function Orders() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-rose-500 text-sm font-medium">Database connection error</p>
+        <p className="text-rose-500 text-sm font-medium">{error}</p>
       </div>
     )
   }
@@ -147,8 +153,8 @@ export default function Orders() {
       <Modal isOpen={isModalOpen} onClose={() => { resetForm(); setIsModalOpen(false) }} title="Create New Order">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Customer Name <span className="text-rose-500">*</span></label>
-            <input type="text" value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Enter customer name" className={inputClass} />
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Supermarket ID <span className="text-rose-500">*</span></label>
+            <input type="text" value={supermarketid} onChange={(e) => setSupermarketid(e.target.value)} placeholder="Enter supermarket ID" className={inputClass} />
           </div>
 
           <div>
@@ -184,11 +190,6 @@ export default function Orders() {
           <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl flex justify-between items-center">
             <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Order Total</span>
             <span className="text-xl font-bold text-emerald-600">₹{orderTotal.toLocaleString('en-IN')}</span>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Notes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Add any special instructions" rows={3} className={inputClass} />
           </div>
 
           <div className="flex gap-2 pt-2">

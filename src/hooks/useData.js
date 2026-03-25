@@ -16,7 +16,7 @@ export function useProducts() {
       setLoading(true)
       const { data, error } = await supabase
         .from('product')
-        .select('*')
+        .select('*, microunit(unitname)')
       if (error) throw error
       setProducts(data || [])
     } catch (err) {
@@ -27,36 +27,95 @@ export function useProducts() {
   }
 
   const addProduct = async (product) => {
-    const { data, error } = await supabase
-      .from('product')
-      .insert([product])
-      .select()
-    if (error) throw error
-    setProducts([...products, ...(data || [])])
-    return data
+    try {
+      // Validate required fields
+      if (!product.productname) throw new Error('Product name is required')
+      if (!product.unitid) throw new Error('Unit ID is required')
+      
+      const { data, error } = await supabase
+        .from('product')
+        .insert([{
+          productname: product.productname,
+          category: product.category || '',
+          unitprice: parseFloat(product.unitprice) || 0,
+          description: product.description || '',
+          unitid: product.unitid
+        }])
+        .select('*, microunit(unitname)')
+      if (error) throw error
+      setProducts([...products, ...(data || [])])
+      return data
+    } catch (err) {
+      throw new Error(`Database schema mismatch: ${err.message}`)
+    }
   }
 
   const updateProduct = async (productid, product) => {
-    const { data, error } = await supabase
-      .from('product')
-      .update(product)
-      .eq('productid', productid)
-      .select()
-    if (error) throw error
-    setProducts(products.map(p => p.productid === productid ? data[0] : p))
-    return data
+    try {
+      const { data, error } = await supabase
+        .from('product')
+        .update({
+          productname: product.productname,
+          category: product.category,
+          unitprice: parseFloat(product.unitprice),
+          description: product.description,
+          unitid: product.unitid
+        })
+        .eq('productid', productid)
+        .select('*, microunit(unitname)')
+      if (error) throw error
+      setProducts(products.map(p => p.productid === productid ? data[0] : p))
+      return data
+    } catch (err) {
+      throw new Error(`Database schema mismatch: ${err.message}`)
+    }
   }
 
   const deleteProduct = async (productid) => {
-    const { error } = await supabase
-      .from('product')
-      .delete()
-      .eq('productid', productid)
-    if (error) throw error
-    setProducts(products.filter(p => p.productid !== productid))
+    try {
+      const { error } = await supabase
+        .from('product')
+        .delete()
+        .eq('productid', productid)
+      if (error) throw error
+      setProducts(products.filter(p => p.productid !== productid))
+    } catch (err) {
+      throw new Error(`Database schema mismatch: ${err.message}`)
+    }
   }
 
   return { products, setProducts, loading, error, addProduct, updateProduct, deleteProduct, fetchProducts }
+}
+
+// Helper hook: useProductsByUnit - Fetch products for a specific micro unit
+export function useProductsByUnit(unitid) {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (unitid) {
+      fetchProductsByUnit()
+    }
+  }, [unitid])
+
+  const fetchProductsByUnit = async () => {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('product')
+        .select('*')
+        .eq('unitid', unitid)
+      if (error) throw error
+      setProducts(data || [])
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { products, loading, error, fetchProductsByUnit }
 }
 
 // PHASE 4: useInventory - Fetch inventory with product JOIN
@@ -135,22 +194,53 @@ export function useOrders() {
   }
 
   const addOrder = async (order) => {
-    const { data, error } = await supabase
-      .from('orders')
-      .insert([order])
-      .select()
-    if (error) throw error
-    fetchOrders()
-    return data
+    try {
+      // Validate required fields for orders table
+      if (!order.supermarketid) throw new Error('Supermarket ID is required')
+      if (!order.totalamount || order.totalamount <= 0) throw new Error('Valid total amount is required')
+      
+      console.log('Creating order with payload:', {
+        supermarketid: order.supermarketid,
+        totalamount: order.totalamount,
+        orderdate: order.orderdate || new Date().toISOString()
+      })
+      
+      const { data, error } = await supabase
+        .from('orders')
+        .insert([{
+          supermarketid: order.supermarketid,
+          totalamount: order.totalamount,
+          orderdate: order.orderdate || new Date().toISOString()
+          // Note: 'status' column will be added to database soon
+          // status: order.status || 'Pending'
+        }])
+        .select()
+      
+      if (error) {
+        console.error('Order insert error:', error)
+        throw error
+      }
+      
+      console.log('Order created successfully:', data)
+      fetchOrders()
+      return data
+    } catch (err) {
+      console.error('Error in addOrder:', err)
+      throw new Error(`Failed to create order: ${err.message}`)
+    }
   }
 
   const updateOrderStatus = async (orderid, status) => {
-    const { error } = await supabase
-      .from('orders')
-      .update({ orderstatus: status })
-      .eq('orderid', orderid)
-    if (error) throw error
-    fetchOrders()
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: status })
+        .eq('orderid', orderid)
+      if (error) throw error
+      fetchOrders()
+    } catch (err) {
+      throw new Error(`Database schema mismatch: ${err.message}`)
+    }
   }
 
   return { orders, loading, error, addOrder, updateOrderStatus, fetchOrders }
@@ -173,7 +263,7 @@ export function useTransport() {
       let result = await supabase
         .from('transport')
         .select('*')
-        .order('departuredate', { ascending: false })
+        .order('transportid', { ascending: false })
       if (result.error) {
         result = await supabase.from('transport').select('*')
       }
@@ -187,28 +277,41 @@ export function useTransport() {
   }
 
   const addTransport = async (shipment) => {
-    const { data, error } = await supabase
-      .from('transport')
-      .insert([{
-        vehiclenumber: shipment.vehiclenumber,
-        drivername: shipment.drivername,
-        transportstatus: 'Pending',
-        orderid: shipment.orderid || null,
-        departuredate: new Date().toISOString()
-      }])
-      .select()
-    if (error) throw error
-    fetchTransport()
-    return data
+    try {
+      // Validate required fields for transport table
+      if (!shipment.vehiclenumber) throw new Error('Vehicle number is required')
+      if (!shipment.drivername) throw new Error('Driver name is required')
+      
+      const { data, error } = await supabase
+        .from('transport')
+        .insert([{
+          vehiclenumber: shipment.vehiclenumber,
+          drivername: shipment.drivername,
+          origin: shipment.origin || '',
+          destination: shipment.destination || '',
+          status: shipment.status || 'Pending',
+          orderid: shipment.orderid || null
+        }])
+        .select()
+      if (error) throw error
+      fetchTransport()
+      return data
+    } catch (err) {
+      throw new Error(`Database schema mismatch: ${err.message}`)
+    }
   }
 
   const updateTransportStatus = async (transportid, status) => {
-    const { error } = await supabase
-      .from('transport')
-      .update({ transportstatus: status })
-      .eq('transportid', transportid)
-    if (error) throw error
-    fetchTransport()
+    try {
+      const { error } = await supabase
+        .from('transport')
+        .update({ status: status })
+        .eq('transportid', transportid)
+      if (error) throw error
+      fetchTransport()
+    } catch (err) {
+      throw new Error(`Database schema mismatch: ${err.message}`)
+    }
   }
 
   return { transport, loading, error, addTransport, updateTransportStatus, fetchTransport }
